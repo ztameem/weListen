@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>weListen</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+    <div class="header">
+        <a class="logo-link" href="{{ url_for('index') }}">
+            <img class="logo" src="../static/imgs/logo.png" alt="logo">
+        </a>
+        <ul class="header-list">
+            <li><a href="login" class="logbutton">Login</a></li>
+            <li><a href="signup" class="signbutton">Sign Up</a></li>
+        </ul>
+    </div>
+
+    <div class="welcome-sign">
+        <img class="soundwaves" src="{{ url_for('static', filename='imgs/soundwaves.gif') }}">
+        <h3>Welcome to weListen!</h3>
+        <a>Share your headphones with all your friends at once!</a>
+        <a>From all over the world!</a>
+    </div>
+
+    <div class="active-trending">
+        <div class="engagement">
+            <h3>See what people are listening to!</h3>
+            <button>Listen In</button>
+        </div>
+        <div class="trending-cards">
+            {% for item in trending_data %}
+                <div class="trending-card">
+                    <!-- Check if album_cover is available -->
+                    {% if item.album_cover %}
+                        <img class="album_cover" src="{{ item.album_cover }}" alt="Album Cover" style="width:40%;height:auto; border-radius: 8px;" >
+                    {% endif %}
+                    <h3>{{ item.artist }}</h3>
+                    <p>{{ item.name }}</p>
+                </div>
+            {% endfor %}
+        </div>  
+    </div>
+</body>
+</html>

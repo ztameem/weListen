@@ -1,0 +1,150 @@
+from flask import Flask, render_template, redirect, url_for, request
+from flask_login import LoginManager, UserMixin, login_user, current_user, login_required, logout_user
+import requests
+import base64
+
+app = Flask(__name__, template_folder='../templates', static_folder='../static')
+app.secret_key = 'tameemiscool'
+
+# User class and database
+class User(UserMixin):
+    def __init__(self, user_id, username, password):
+        self.id = user_id
+        self.username = username
+        self.password = password
+
+users_db = {
+    1: User(1, 'john_doe', 'password123'),
+    2: User(2, 'jane_smith', 'letmein')
+}
+
+login_manager = LoginManager()
+login_manager.init_app(app)
+
+@login_manager.user_loader
+def load_user(user_id):
+    return users_db.get(int(user_id))
+
+CLIENT_ID = '8fef37167b064238a21086b772734685'
+CLIENT_SECRET = '70710cec2a974e8cb4ec5c6477eea4da'
+CLIENT_CREDENTIALS = base64.b64encode(f"{CLIENT_ID}:{CLIENT_SECRET}".encode()).decode()
+
+def get_spotify_access_token():
+    token_url = 'https://accounts.spotify.com/api/token'
+    headers = {
+        'Authorization': f'Basic {CLIENT_CREDENTIALS}',
+        'Content-Type': 'application/x-www-form-urlencoded',
+    }
+    data = {'grant_type': 'client_credentials'}
+
+    response = requests.post(token_url, headers=headers, data=data)
+    response_data = response.json()
+    return response_data.get('access_token')
+
+def get_spotify_album_cover(api_key, artist, track_name):
+    base_url = 'https://api.spotify.com/v1/search'
+    
+    access_token = get_spotify_access_token()
+
+    params = {
+        'q': f'{artist} {track_name}',
+        'type': 'track',
+        'limit': 1,
+    }
+
+    headers = {
+        'Authorization': f'Bearer {access_token}',
+    }
+
+    try:
+        response = requests.get(base_url, params=params, headers=headers)
+        response.raise_for_status()
+        data = response.json()
+
+        if 'tracks' in data and 'items' in data['tracks']:
+            track_info = data['tracks']['items'][0]
+            album_info = track_info.get('album', {})
+            images = album_info.get('images', [])
+
+            if images:
+                album_cover = images[0]['url']
+                return album_cover
+    except requests.exceptions.RequestException as e:
+        return None
+
+def get_top_tracks(api_key, limit=4):
+    base_url = 'http://ws.audioscrobbler.com/2.0/'
+    method = 'chart.getTopTracks'
+
+    params = {
+        'method': method,
+        'api_key': api_key,
+        'format': 'json',
+        'limit': limit,
+    }
+
+    try:
+        response = requests.get(base_url, params=params)
+        response.raise_for_status()
+        data = response.json()
+
+        if 'tracks' in data and 'track' in data['tracks']:
+            top_tracks = data['tracks']['track']
+            return top_tracks
+        else:
+            print(f"Error: {data.get('message', 'Unknown error')}")
+    except requests.exceptions.RequestException as e:
+        print(f"Request error: {e}")
+        return None
+
+@app.route('/')
+def index():
+    api_key_lastfm = '790b5557c38b27cbec0e9a4532714e92'
+
+    # Get the top 4 tracks from Last.fm
+    top_tracks = get_top_tracks(api_key_lastfm, limit=4)
+
+    # Enhance each track with album cover information
+    for item in top_tracks:
+        artist = item['artist']['name']
+        track_name = item['name']
+
+        # Get album cover information
+        album_cover = get_spotify_album_cover(api_key_lastfm, artist, track_name)
+
+        # Ensure each item has an album_cover field
+        item['album_cover'] = album_cover if album_cover else ''
+
+        # Extract only the artist name
+        item['artist'] = artist
+
+    return render_template('index.html', trending_data=top_tracks)
+
+
+
+
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    if request.method == 'POST':
+        username = request.form['username']
+        password = request.form['password']
+        user = next((u for u in users_db.values() if u.username == username and u.password == password), None)
+        if user:
+            login_user(user)
+            return redirect(url_for('profile'))
+        return 'Invalid username or password'
+    return render_template('login.html')
+
+@app.route('/logout')
+@login_required
+def logout():
+    logout_user()
+    return redirect(url_for('index'))
+
+@app.route('/profile')
+@login_required
+def profile():
+    return f'Hello, {current_user.username}!'
+
+if __name__ == '__main__':
+    app.run(debug=True)

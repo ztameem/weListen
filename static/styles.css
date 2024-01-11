@@ -1,0 +1,151 @@
+
+* {
+    font-family:'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
+    color: white;
+}
+.header {
+    background-color: #280137;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 10%;
+    position: sticky;
+    top: 0px;
+}
+
+.logo-link {
+    width: 6%;
+    height: 6%;
+}
+
+.logo {
+    width: 90%;
+    height: 90%;
+
+}
+
+a {
+    text-decoration: none;
+}
+
+.logbutton {
+    color:#EDABEF;
+}
+
+.logbutton:hover {
+    color: #e36ae7;
+}
+
+.signbutton {
+    color: #EDABEF;
+}
+
+.signbutton:hover {
+    color: #ffffff;
+}
+
+.header-list {
+    list-style: none;
+    display: flex;
+    gap: 50px;
+    font-size: large;
+}
+
+.header-list li a {
+    display: inline-block;
+    padding: 17px 20px;
+    border: 2px white;
+}
+
+.welcome-sign {
+    background-color: #400159;
+}
+
+.welcome-sign h1 {
+    margin: 0px;
+}
+
+.soundwaves {
+    display: flex;
+    width: 50%;
+    height: 10%;
+}
+
+.active-trending {
+    background-image: url('../static/imgs/trending.jpg');
+    height: 800px;
+    background-position: center;
+    background-repeat: no-repeat;
+    display: flex;
+    justify-content: space-around;
+}
+
+.trending-cards {
+    display: flex;
+    flex-wrap: wrap;
+    margin: 3% -5%;
+    width: 60%;
+    align-items: center;
+    justify-content: space-around;
+}
+
+.active-trending .engagement {
+    padding-top: 7%;
+    justify-content: center;
+}
+
+.trending-card {
+    background-color: #EDABEF;
+    border: 6px solid cadetblue;
+    padding: 5px;
+    border-radius: 8px;
+    text-align: center;
+    width: 33%;
+    height: auto;
+}
+
+img.album-cover  {
+    max-width: 100px;
+    max-height: 100px;
+}
+
+
+
+
+
+
+
+body {
+    font-family: Arial, Helvetica, sans-serif;
+    text-align: center;
+    margin: 0;
+}
+
+form {
+    display: inline-block;
+    padding: 20px;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+label {
+    display: block;
+    margin-bottom: 8px;
+}
+
+input {
+    width: 100%;
+    padding: 8px;
+    margin-bottom: 15px;
+    box-sizing: border-box;
+}
+
+button {
+    background-color: #4CAF50;
+    color: white;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+}
