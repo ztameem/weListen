@@ -2,9 +2,11 @@ from flask import Flask, render_template, redirect, url_for, request
 from flask_login import LoginManager, UserMixin, login_user, current_user, login_required, logout_user
 import requests
 import base64
+import config
+
 
 app = Flask(__name__, template_folder='../templates', static_folder='../static')
-app.secret_key = 'tameemiscool'
+app.secret_key = config.secret_key
 
 # User class and database
 class User(UserMixin):
@@ -25,8 +27,9 @@ login_manager.init_app(app)
 def load_user(user_id):
     return users_db.get(int(user_id))
 
-CLIENT_ID = '8fef37167b064238a21086b772734685'
-CLIENT_SECRET = '70710cec2a974e8cb4ec5c6477eea4da'
+CLIENT_ID = config.CLIENT_ID
+CLIENT_SECRET = config.CLIENT_SECRET
+
 CLIENT_CREDENTIALS = base64.b64encode(f"{CLIENT_ID}:{CLIENT_SECRET}".encode()).decode()
 
 def get_spotify_access_token():
@@ -99,7 +102,7 @@ def get_top_tracks(api_key, limit=4):
 
 @app.route('/')
 def index():
-    api_key_lastfm = '790b5557c38b27cbec0e9a4532714e92'
+    api_key_lastfm = config.api_key_lastfm
 
     # Get the top 4 tracks from Last.fm
     top_tracks = get_top_tracks(api_key_lastfm, limit=4)
