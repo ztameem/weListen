@@ -81,12 +81,12 @@ a {
 }
 
 .trending-cards {
+    margin-top: 3%;
     display: flex;
     flex-wrap: wrap;
-    margin: 3% -5%;
-    width: 60%;
-    align-items: center;
     justify-content: space-around;
+    gap: 40px;
+    flex-basis: 50%;
 }
 
 .active-trending .engagement {
@@ -95,18 +95,27 @@ a {
 }
 
 .trending-card {
-    background-color: #EDABEF;
-    border: 6px solid cadetblue;
-    padding: 5px;
-    border-radius: 8px;
-    text-align: center;
     width: 33%;
-    height: auto;
+    height: 33%;
 }
 
 img.album-cover  {
-    max-width: 100px;
-    max-height: 100px;
+    object-fit: cover;
+    border-radius: 10px;
+    border: 5px solid #3882F6;
+}
+
+.card-text {
+    text-shadow:#3882F6 1px 0 10px;
+}
+
+.card-text h3 {
+    margin-top: 3px;
+    margin-bottom: 0px;
+}
+
+.card-text p {
+    margin-top: 3px;
 }
 
 

@@ -34,10 +34,13 @@
                 <div class="trending-card">
                     <!-- Check if album_cover is available -->
                     {% if item.album_cover %}
-                        <img class="album_cover" src="{{ item.album_cover }}" alt="Album Cover" style="width:40%;height:auto; border-radius: 8px;" >
+                        <img class="album_cover" src="{{ item.album_cover }}" alt="Album Cover" 
+                        style="width:100%;height:auto; border-radius: 8px; border: 5px solid #B5A3C5">
                     {% endif %}
-                    <h3>{{ item.artist }}</h3>
-                    <p>{{ item.name }}</p>
+                    <div class="card-text">
+                        <h3>{{ item.artist }}</h3>
+                        <p>{{ item.name }}</p>
+                    </div>
                 </div>
             {% endfor %}
         </div>  
