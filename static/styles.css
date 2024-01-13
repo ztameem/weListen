@@ -59,16 +59,43 @@ a {
 
 .welcome-sign {
     background-color: #400159;
-}
-
-.welcome-sign h1 {
-    margin: 0px;
+    display: flex;
+    align-items: center;
+    justify-content: space-around;
+    text-align: center;
+    padding: 40px 0; 
 }
 
 .soundwaves {
-    display: flex;
     width: 50%;
-    height: 10%;
+    height: auto; 
+}
+
+.welcome-text {
+    margin-left: 20px; 
+    display: flex;
+    flex-direction: column; 
+    align-items: center;
+}
+
+.app-name {
+    color: white;
+    font-size: 100px;
+    text-shadow: #f650d2 1px 0 40px;
+    margin-top: 5px;
+}
+
+.welcome-text h1, .welcome-text a {
+    color: #EDABEF;
+    margin-bottom: 10px; 
+}
+
+
+.welcome-text img {
+    width: 100px;
+    height: auto;
+    margin-top: 20px;
+    margin-bottom: 20px; 
 }
 
 .active-trending {
@@ -80,6 +107,7 @@ a {
     justify-content: space-around;
 }
 
+
 .trending-cards {
     margin-top: 3%;
     display: flex;
@@ -90,8 +118,55 @@ a {
 }
 
 .active-trending .engagement {
+    flex: 1; 
     padding-top: 7%;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
     justify-content: center;
+}
+
+.active-trending .engagement h1 {
+    color: white;
+    margin-bottom: 20px; 
+    font-size: 36px; 
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5), 4px 4px 6px rgba(0, 0, 0, 0.3); 
+    -webkit-text-stroke: 1px #5c195e; 
+}
+
+.active-trending .engagement p {
+    color: white;
+    margin-bottom: 40px; 
+    font-size: 18px; 
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5), 4px 4px 6px rgba(0, 0, 0, 0.3);
+    -webkit-text-stroke: .4px #5c195e;
+}
+
+button {
+    background-color: #e36ae7; 
+    color: white;
+    padding: 10px 20px; 
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    font-size: 15px;
+}
+
+button:hover {
+    background-color: #d149b2;
+}
+
+.active-trending .engagement button {
+    padding: 15px 30px; 
+    font-size: 20px; 
+    background-color: #eddbe8;
+    color: #d149b2;
+}
+
+.active-trending .engagement button:hover {
+    background-color: #e2b6d7;
 }
 
 .trending-card {
@@ -99,17 +174,11 @@ a {
     height: 33%;
 }
 
-img.album-cover  {
-    object-fit: cover;
-    border-radius: 10px;
-    border: 5px solid #3882F6;
-}
-
 .card-text {
     text-shadow:#3882F6 1px 0 10px;
 }
 
-.card-text h3 {
+.card-text h1 {
     margin-top: 3px;
     margin-bottom: 0px;
 }
@@ -118,43 +187,46 @@ img.album-cover  {
     margin-top: 3px;
 }
 
-
-
-
-
-
-
 body {
-    font-family: Arial, Helvetica, sans-serif;
-    text-align: center;
     margin: 0;
+    text-align: center;
 }
 
-form {
-    display: inline-block;
+.join-now {
+    position: relative;
+    height: 300px;
+}
+
+.join-now::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    background-image: url('../static/imgs/joinwaves.png');
+    background-position: bottom;
+    background-size: 100%;
+    background-repeat: no-repeat;
+    transform: scaleY(-1); 
+    z-index: -1;
+}
+
+.join-now-content {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    max-width: 600px;
     padding: 20px;
-    border: 1px solid #ccc;
-    border-radius: 8px;
-    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    background-color: rgba(64, 1, 89, 0.8); 
+    border-radius: 10px;
+    text-align: center;
 }
 
-label {
-    display: block;
-    margin-bottom: 8px;
-}
-
-input {
-    width: 100%;
-    padding: 8px;
-    margin-bottom: 15px;
-    box-sizing: border-box;
-}
-
-button {
-    background-color: #4CAF50;
+.join-now-content p {
     color: white;
-    padding: 10px 20px;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
+    font-size: 18px;
+    line-height: 1.5;
+    margin-bottom: 20px;
 }
