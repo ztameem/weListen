@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="{{ url_for('static', filename='main.js') }}"></script>
     <title>weListen</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
 </head>
@@ -34,29 +35,18 @@
             <p>Login or listen in as a guest</p>
             <button>Listen In</button>
         </div>
-        <div class="trending-cards">
-                {% for item in trending_data %}
-                <div class="trending-card">
-                    <!-- Check if album_cover is available -->
-                    {% if item.album_cover %}
-                        <img class="album_cover" src="{{ item.album_cover }}" alt="Album Cover" 
-                        style="width:100%;height:auto; border-radius: 8px; box-shadow: #3882F6 1px 0 20px">
-                    {% endif %}
-                    <div class="card-text">
-                        <h3>{{ item.artist }}</h3>
-                        <p>{{ item.name }}</p>
-                    </div>
-                </div>
-            {% endfor %}
-        </div>  
+        <div class="trending-cards" id="trending-cards-container">
+            <!-- populated by main.js -->
+        </div>                 
     </div>
 
     <div class="join-now">
         <div class="join-now-content">
-            <p>From jazz to pop, join in with [active_users] friends while you dance, chat, 
+            <p>From jazz to pop, join in with <span id="active-users">your</span> friends while you dance, chat, 
                 and express yourself in your favorite styles. Start by clicking the Sign Up button!</p>
                 <button>Sign Up</button>
         </div>
     </div>
+    <script src="{{ url_for('static', filename='main.js') }}"></script>
 </body>
 </html>

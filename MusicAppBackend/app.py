@@ -1,8 +1,6 @@
-from flask import Flask, render_template, redirect, url_for, request
+from flask import Flask, render_template, redirect, url_for, request, jsonify
 from flask_login import LoginManager, UserMixin, login_user, current_user, login_required, logout_user
-import requests
-import base64
-import config
+import requests, base64, config, threading, time
 
 
 app = Flask(__name__, template_folder='../templates', static_folder='../static')
@@ -26,6 +24,25 @@ login_manager.init_app(app)
 @login_manager.user_loader
 def load_user(user_id):
     return users_db.get(int(user_id))
+
+# active_users_count = 0
+# active_users_lock = threading.Lock()
+
+# def update_active_users_count():
+#     global active_users_count
+#     while True:
+#         time.sleep(1)
+#         with active_users_lock:
+#             active_users_count += 1
+
+# threading.Thread(target=update_active_users_count, daemon=True).start()
+
+# @app.route('/api/active_users_count')
+# def api_active_users_count():
+#     with active_users_lock:
+#         return jsonify({'active_users_count': active_users_count})
+
+
 
 CLIENT_ID = config.CLIENT_ID
 CLIENT_SECRET = config.CLIENT_SECRET
@@ -100,32 +117,39 @@ def get_top_tracks(api_key, limit=4):
         print(f"Request error: {e}")
         return None
 
+def get_processed_top_tracks(api_key_lastfm, limit=4):
+    top_tracks = get_top_tracks(api_key_lastfm, limit=limit)
 
-@app.route('/')
-def index():
-    api_key_lastfm = config.api_key_lastfm
-
-    # Get the top 4 tracks from Last.fm
-    top_tracks = get_top_tracks(api_key_lastfm, limit=4)
-
-    # Enhance each track with album cover information
     for item in top_tracks:
         artist = item['artist']['name']
         track_name = item['name']
 
-        # Get album cover information
         album_cover = get_spotify_album_cover(api_key_lastfm, artist, track_name)
-
-        # Ensure each item has an album_cover field
         item['album_cover'] = album_cover if album_cover else ''
-
-        # Extract only the artist name
         item['artist'] = artist
 
-    return render_template('index.html', trending_data=top_tracks)
+    return top_tracks
 
+@app.route('/api/top_tracks')
+def api_top_tracks():
+    api_key_lastfm = config.api_key_lastfm
+    limit = int(request.args.get('limit', 4))
 
+    top_tracks = get_processed_top_tracks(api_key_lastfm, limit=limit)
 
+    return jsonify(top_tracks)
+
+@app.route('/api/fetch_data')
+def api_fetch_data():
+    api_key_lastfm = config.api_key_lastfm
+
+    top_tracks = get_processed_top_tracks(api_key_lastfm, limit=4)
+
+    return jsonify({'top_tracks': top_tracks})
+
+@app.route('/')
+def index():
+    return render_template('index.html')
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
