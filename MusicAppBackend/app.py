@@ -100,6 +100,7 @@ def get_top_tracks(api_key, limit=4):
         print(f"Request error: {e}")
         return None
 
+
 @app.route('/')
 def index():
     api_key_lastfm = config.api_key_lastfm
