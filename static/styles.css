@@ -229,3 +229,176 @@ body {
     line-height: 1.5;
     margin-bottom: 20px;
 }
+
+/* ... (your existing CSS styles) ... */
+
+body {
+    margin: 0;
+    font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
+    background-color: #201b22; /* Dark background color */
+}
+
+#home-header {
+    position: relative;
+    padding-top: .7%;
+    padding-bottom: .7%;
+    padding-left: 3%;
+    box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
+}
+
+.home-container {
+    display: flex;
+    height: 100vh;
+}
+
+.sidebar {
+    width: 10;
+    background-color: #1e002e; /* Dark purple */
+    color: white;
+    padding: 20px;
+    box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
+}
+
+.room-list-container {
+    flex: 1;
+    padding: 20px;
+}
+
+.popup {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+}
+
+.popup-content {
+    background-color: #1f1f1f;
+    padding: 20px;
+    border-radius: 10px;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    text-align: center;
+}
+
+.close {
+    color: #ffffff;
+    float: right;
+    font-size: 28px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+#room-name, #genre {
+    color: black;
+}
+
+/* Add this to your existing CSS or create a new stylesheet */
+#room-sidebar {
+    width: 0;
+    height: 100%;
+    position: fixed;
+    top: 0;
+    left: 0;
+    background-color: #111;
+    overflow-x: hidden;
+    transition: 0.5s;
+    padding-top: 60px;
+    padding-left: 6px;
+}
+
+#room-sidebar.active {
+    width: 250px;
+}
+
+#home-button {
+    display: flex;
+    align-items: center;
+}
+
+#home-button .emoji {
+    display: inline-block;
+
+}
+
+#home-button.expanded .emoji {
+    display: none;
+}
+
+#home-button .text {
+    display: none;
+    margin-left: 110px;
+}
+
+#home-button.expanded .text {
+    display: inline-block;
+}
+
+#room-content {
+    display: flex;
+    justify-content: space-around;
+    padding-left: 250px; 
+}
+
+#chat-box {
+    position: fixed;
+    bottom: 0;
+    right: 0;
+    width: 250px;
+    background-color: #303030;
+    color: white;
+    overflow-y: auto;
+    padding: 10px;
+    min-height: 100vh; 
+    display: flex;
+    flex-direction: column-reverse;
+
+}
+
+#message-input {
+    width: calc(100% - 20px);
+    padding: 8px;
+    margin-top: 10px;
+    border: none;
+    border-radius: 5px;
+    background-color: #505050;
+    color: white;
+}
+
+#chat-messages {
+    list-style-type: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column; /* Set the direction to column */
+    align-items: flex-start; /* Align messages to the start (bottom) */
+    max-height: 100vh;
+    overflow-y: auto;
+    text-align: left;
+    max-width: 250px;
+}
+
+#chat-messages li:not(:first-child) {
+    margin-top: 10px;
+}
+
+.guest-name {
+    font-weight: bold;
+    color: #999;  /* You can choose a different color */
+    margin-right: 5px;
+}
+
+.message-container {
+    display: flex;
+    align-items: baseline;
+}
+
+.user-joined-notification {
+    color: purple;
+    font-weight: bold;
+}
+

@@ -9,7 +9,7 @@
 </head>
 <body>
     <div class="header">
-        <a class="logo-link" href="{{ url_for('index') }}">
+        <a class="logo-link" href="{{ url_for('home_room') }}">
             <img class="logo" src="../static/imgs/logo.png" alt="logo">
         </a>
         <ul class="header-list">
@@ -33,7 +33,7 @@
         <div class="engagement">
             <h1>See what people are listening to!</h1>
             <p>Login or listen in as a guest</p>
-            <button>Listen In</button>
+            <a href="{{ url_for('home_room') }}"><button>Listen In</button></a>
         </div>
         <div class="trending-cards" id="trending-cards-container">
             <!-- populated by main.js -->

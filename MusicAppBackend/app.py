@@ -1,48 +1,126 @@
 from flask import Flask, render_template, redirect, url_for, request, jsonify
-from flask_login import LoginManager, UserMixin, login_user, current_user, login_required, logout_user
-import requests, base64, config, threading, time
+from flask_login import LoginManager, login_user, current_user, login_required, logout_user
+from flask_sqlalchemy import SQLAlchemy
+import base64, config, requests, uuid
+from flask_socketio import SocketIO, emit, join_room
 
 
 app = Flask(__name__, template_folder='../templates', static_folder='../static')
 app.secret_key = config.secret_key
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///site.db'
+db = SQLAlchemy(app)
+socketio = SocketIO(app)
 
-# User class and database
-class User(UserMixin):
-    def __init__(self, user_id, username, password):
-        self.id = user_id
-        self.username = username
-        self.password = password
+class User(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    username = db.Column(db.String(50), unique=True, nullable=False)
 
-users_db = {
-    1: User(1, 'john_doe', 'password123'),
-    2: User(2, 'jane_smith', 'letmein')
-}
+class Room(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(100), nullable=False)
+    genre = db.Column(db.String(50), nullable=False)
+    guest_allowed = db.Column(db.Boolean, default=True)
+    users = db.relationship('User', secondary='user_room', lazy='dynamic')
+
+user_room = db.Table('user_room',
+    db.Column('user_id', db.Integer, db.ForeignKey('user.id')),
+    db.Column('room_id', db.Integer, db.ForeignKey('room.id'))
+)
+
+@app.route('/home')
+def home_room():
+    rooms = Room.query.all()
+    return render_template('home.html', rooms=rooms)
+
+@app.route('/api/create_room', methods=['POST'])
+def create_room():
+    data = request.json
+    room_name = data.get('roomName')
+    genre = data.get('genre')
+    room_type = data.get('roomType')
+
+    new_room = Room(name=room_name, genre=genre, guest_allowed=(room_type == 'public'))
+
+    try:
+        db.session.add(new_room)
+        db.session.commit()
+        socketio.emit('room_created', {'room_id': new_room.id}, namespace='/')
+
+        return jsonify({'success': True, 'roomId': new_room.id, 'message': 'Room created successfully'})
+    except Exception as e:
+        print(f"Error creating room: {e}")
+        db.session.rollback()
+        return jsonify({'success': False, 'error': 'Failed to create room'})
+
+
+@app.route('/room/<int:room_id>', methods=['GET', 'POST'])
+def room(room_id):
+    room = Room.query.get(room_id)
+    if not room:
+        return redirect(url_for('home'))
+
+    if request.method == 'POST':
+        username = request.form.get('username')
+        if username:
+            user = User.query.filter_by(username=username).first()
+            if not user:
+                user = User(username=username)
+                db.session.add(user)
+                db.session.commit()
+
+            # Add the user to the room
+            if room.guest_allowed or user in room.users:
+                room.users.append(user)
+                db.session.commit()
+                return redirect(url_for('room', room_id=room_id))
+            else:
+                return jsonify({'success': False, 'error': 'Guests not allowed in this room'})
+
+    return render_template('room.html', room=room)
+
+
+@socketio.on('message')
+def handle_message(data):
+    emit('message', {'message': data['message'], 'userNumber': data['userNumber']}, room=data['room_id'])
+
+@socketio.on('connect')
+def handle_connect():
+    room_id = request.args.get('room_id')
+    user_id = str(uuid.uuid4())
+    join_room(room_id)
+
+
+    emit('user_info', {'user_id': user_id})
+
+
+@socketio.on('request_user_number')
+def handle_request_user_number():
+    room_id = request.args.get('room_id') 
+    user_number = assign_user_number(room_id)
+    emit('assign_user_number', {'userNumber': user_number}, room=request.sid)
+    emit('user_joined', {'userNumber': user_number}, room=room_id, broadcast=True)
+
+room_user_numbers = {}
+
+def assign_user_number(room_id):
+    if room_id not in room_user_numbers:
+        room_user_numbers[room_id] = {}
+
+    user_socket_id = request.sid
+
+    if user_socket_id not in room_user_numbers[room_id]:
+        user_number = len(room_user_numbers[room_id]) + 1
+        room_user_numbers[room_id][user_socket_id] = user_number
+
+    return room_user_numbers[room_id][user_socket_id]
+
 
 login_manager = LoginManager()
 login_manager.init_app(app)
 
 @login_manager.user_loader
 def load_user(user_id):
-    return users_db.get(int(user_id))
-
-# active_users_count = 0
-# active_users_lock = threading.Lock()
-
-# def update_active_users_count():
-#     global active_users_count
-#     while True:
-#         time.sleep(1)
-#         with active_users_lock:
-#             active_users_count += 1
-
-# threading.Thread(target=update_active_users_count, daemon=True).start()
-
-# @app.route('/api/active_users_count')
-# def api_active_users_count():
-#     with active_users_lock:
-#         return jsonify({'active_users_count': active_users_count})
-
-
+    return User.query.get(int(user_id))
 
 CLIENT_ID = config.CLIENT_ID
 CLIENT_SECRET = config.CLIENT_SECRET
@@ -156,10 +234,7 @@ def login():
     if request.method == 'POST':
         username = request.form['username']
         password = request.form['password']
-        user = next((u for u in users_db.values() if u.username == username and u.password == password), None)
-        if user:
-            login_user(user)
-            return redirect(url_for('profile'))
+        return redirect(url_for('profile'))
         return 'Invalid username or password'
     return render_template('login.html')
 
@@ -175,4 +250,6 @@ def profile():
     return f'Hello, {current_user.username}!'
 
 if __name__ == '__main__':
+    with app.app_context():
+        db.create_all()
     app.run(debug=True)

@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"></script>
+    <title>{{ room.name }} Room</title>
+</head>
+<body>
+    <div id="room-sidebar" class="sidebar">
+        <a href="{{ url_for('home_room') }}" id="home-button">
+            <span class="emoji">🏠</span>
+            <span class="text">Home</span>
+        </a>    
+    </div>
+    <div id="room-content">
+        <div id="chat-box">
+            <div class="chat-section">
+                <ul id="chat-messages"></ul>
+                <input type="text" id="message-input" placeholder="Type your message...">
+            </div>
+        </div>
+
+        <h1>{{ room.name }} Room</h1>
+        <!-- Display Room Users -->
+        <ul id="roomUsers">
+            {% for user in room.users %}
+                <li>{{ user.username }}</li>
+            {% endfor %}
+        </ul>
+    </div>
+    <script src="{{ url_for('static', filename='main.js') }}"></script>
+</body>
+</html>

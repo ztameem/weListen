@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <title>Home Room</title>
+</head>
+<body>
+    <div class="header" id="home-header">
+        <a class="logo-link" href="{{ url_for('home_room') }}">
+            <img class="logo" id="home-logo" src="../static/imgs/logo.png" alt="logo">
+        </a>
+        <ul class="header-list">
+            <li>You're on: Home Page!</li>
+        </ul>    
+    </div>
+
+    <div class="home-container">
+        <div class="sidebar">
+            <button id="create-room-btn" onclick="showCreateRoomPopup()">Create Room</button>
+            <!-- Add more sidebar options as needed -->
+        </div>
+        <div id="create-room-popup" class="popup">
+            <div class="popup-content">
+                <span class="close" onclick="hideCreateRoomPopup()">&times;</span>
+                <h2>Create a Room</h2>
+                <form id="create-room-form">
+                    <label for="room-name">Room Name:</label>
+                    <input type="text" id="room-name" name="room-name" required onkeypress="handleKeyPress(event)">
+        
+                    <label for="genre">Genre:</label>
+                    <select id="genre" name="genre" required>
+                        <option value="mix">Mix</option>
+                        <option value="rock">Rock</option>
+                        <option value="pop">Pop</option>
+                        <option value="hip-hop">Hip Hop</option>
+                        <!-- Add more genre options as needed -->
+        
+                    </select>
+        
+                    <label for="room-type">Room Type:</label>
+                    <input type="radio" id="public" name="room-type" value="public" checked>
+                    <label for="public">Public</label>
+                    <input type="radio" id="private" name="room-type" value="private">
+                    <label for="private">Private</label>
+        
+                    <button type="button" onclick="createRoom()">Create</button>
+                </form>
+            </div>
+        </div>
+
+        <div class="room-list-container">
+            <!-- Empty area for rooms -->
+            <p>No rooms available yet.</p>
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='main.js') }}"></script>
+</body>
+</html>

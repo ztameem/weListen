@@ -1,2 +1,3 @@
 musicappenv/
 /MusicAppBackend/config.py
+.gitignore
