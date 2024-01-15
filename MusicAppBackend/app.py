@@ -1,7 +1,7 @@
-from flask import Flask, render_template, redirect, url_for, request, jsonify
+from flask import Flask, render_template, redirect, url_for, request, jsonify, session
 from flask_login import LoginManager, login_user, current_user, login_required, logout_user
 from flask_sqlalchemy import SQLAlchemy
-import base64, config, requests, uuid
+import base64, config, requests, uuid, os
 from flask_socketio import SocketIO, emit, join_room
 
 
@@ -56,6 +56,7 @@ def create_room():
 @app.route('/room/<int:room_id>', methods=['GET', 'POST'])
 def room(room_id):
     room = Room.query.get(room_id)
+    session['room_id'] = room_id
     if not room:
         return redirect(url_for('home'))
 
@@ -68,30 +69,27 @@ def room(room_id):
                 db.session.add(user)
                 db.session.commit()
 
-            # Add the user to the room
             if room.guest_allowed or user in room.users:
                 room.users.append(user)
                 db.session.commit()
                 return redirect(url_for('room', room_id=room_id))
             else:
                 return jsonify({'success': False, 'error': 'Guests not allowed in this room'})
+            
+    if 'room_queued_songs' not in session:
+        session['room_queued_songs'] = {}
 
-    return render_template('room.html', room=room)
+    if room_id not in session['room_queued_songs']:
+        session['room_queued_songs'][room_id] = []
+
+    room_queued_songs = session['room_queued_songs'][room_id]
+
+    return render_template('room.html', room=room, room_queued_songs=room_queued_songs)
 
 
 @socketio.on('message')
 def handle_message(data):
     emit('message', {'message': data['message'], 'userNumber': data['userNumber']}, room=data['room_id'])
-
-@socketio.on('connect')
-def handle_connect():
-    room_id = request.args.get('room_id')
-    user_id = str(uuid.uuid4())
-    join_room(room_id)
-
-
-    emit('user_info', {'user_id': user_id})
-
 
 @socketio.on('request_user_number')
 def handle_request_user_number():
@@ -101,6 +99,38 @@ def handle_request_user_number():
     emit('user_joined', {'userNumber': user_number}, room=room_id, broadcast=True)
 
 room_user_numbers = {}
+
+@socketio.on('user_joined')
+def handle_user_joined(data):
+    room_id = data['room_id']
+    user_number = assign_user_number(room_id)
+    emit('assign_user_number', {'userNumber': user_number}, room=request.sid)
+    user_count = len(room_user_numbers[room_id])
+    emit('user_joined', {'userNumber': user_number, 'userCount': user_count}, room=room_id, broadcast=True)
+
+@socketio.on('user_left')
+def handle_user_left(data):
+    room_id = data['room_id']
+    user_number = room_user_numbers[room_id].pop(request.sid, None)
+    if user_number is not None:
+        user_count = len(room_user_numbers[room_id])
+        emit('user_left', {'userNumber': user_number, 'userCount': user_count}, room=room_id, broadcast=True)
+
+@socketio.on('connect')
+def handle_connect():
+    room_id = request.args.get('room_id')
+    user_id = str(uuid.uuid4())
+    join_room(room_id)
+    emit('user_info', {'user_id': user_id})
+
+@socketio.on('disconnect')
+def handle_disconnect():
+    room_id = request.args.get('room_id')
+    user_number = room_user_numbers[room_id].pop(request.sid, None)
+    if user_number is not None:
+        user_count = len(room_user_numbers[room_id])
+        emit('user_left', {'userNumber': user_number, 'userCount': user_count}, room=room_id, broadcast=True)
+
 
 def assign_user_number(room_id):
     if room_id not in room_user_numbers:
@@ -223,7 +253,61 @@ def api_fetch_data():
 
     top_tracks = get_processed_top_tracks(api_key_lastfm, limit=4)
 
-    return jsonify({'top_tracks': top_tracks})
+    local_songs = get_local_songs()
+
+    all_songs = {'top_tracks': top_tracks, 'local_songs': local_songs}
+
+    return jsonify(all_songs)
+
+def get_local_songs():
+    local_songs_directory = '/Users/tzaidat/Desktop/pprojects/musicwebapp/MusicAppBackend/songs'
+
+    local_songs = []
+
+    for filename in os.listdir(local_songs_directory):
+        if filename.endswith('.mp3'):
+            parts = os.path.splitext(filename)[0].split('-')
+            
+            if len(parts) == 2:
+                song_name = parts[0].strip()
+                artist = parts[1].strip()
+
+                local_song = {'name': song_name, 'artist': artist, 'path': os.path.join(local_songs_directory, filename)}
+                local_songs.append(local_song)
+
+    return local_songs
+
+@app.route('/api/search_songs')
+def search_songs():
+    query = request.args.get('query', '').lower()
+    local_songs = get_local_songs()  # Implement get_local_songs function if not already done
+    matching_songs = [song for song in local_songs if query in song['name'].lower() or query in song['artist'].lower()]
+    return jsonify(matching_songs)
+
+@app.route('/api/queue_song', methods=['POST'])
+def queue_song():
+    data = request.json
+    song_name = data.get('songName')
+    artist = data.get('artist')
+
+    if song_name and artist:
+        if not session['room_queued_songs'].get(session['room_id']):
+            socketio.emit('play_song', {'songName': song_name, 'artist': artist}, room=session['room_id'])
+        else:
+            session['room_queued_songs'][session['room_id']].append({'songName': song_name, 'artist': artist})
+            socketio.emit('update_queue', {'queuedSongs': session['room_queued_songs'][session['room_id']]}, room=session['room_id'])
+
+        return jsonify({'success': True, 'message': 'Song queued successfully'})
+    else:
+        return jsonify({'success': False, 'error': 'Invalid song information'})
+
+@app.route('/api/get_queued_songs')
+def get_queued_songs():
+    room_id = session.get('room_id')
+    queued_songs = session['room_queued_songs'].get(room_id, [])
+    return jsonify({'queuedSongs': queued_songs})
+
+
 
 @app.route('/')
 def index():

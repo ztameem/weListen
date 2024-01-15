@@ -15,21 +15,43 @@
         </a>    
     </div>
     <div id="room-content">
+        <div id="toggle-chat-container" class="active">
+            <div id="toggle-chat" class="arrow-icon">&#x2192;</div>
+        </div>
         <div id="chat-box">
             <div class="chat-section">
                 <ul id="chat-messages"></ul>
                 <input type="text" id="message-input" placeholder="Type your message...">
             </div>
         </div>
+        <div class="room-top">
+            <h1>{{ room.name }} Room</h1>
+            <div id="active-users-counter">0 users online</div>
+            <div id="music-player">
+                <audio id="audio-player" controls>
+                    Your browser does not support the audio element.
+                </audio>
+            </div>
+        </div>
+        <button id="queue-button" onclick="openQueuePopup()">Queue</button>
 
-        <h1>{{ room.name }} Room</h1>
-        <!-- Display Room Users -->
-        <ul id="roomUsers">
-            {% for user in room.users %}
-                <li>{{ user.username }}</li>
-            {% endfor %}
-        </ul>
-    </div>
+        <div id="queue-popup" style="display: none;">
+            <div id="popup-header">
+                <h3>Queue a Song</h3>
+                <button id="close-popup" onclick="closeQueuePopup()">X</button>
+            </div>
+            <!-- Search module -->
+            <input type="text" id="search-input" placeholder="Enter song name or artist">
+            <button id="queue-song-button">Queue</button>
+            <div id="local-songs-container"></div>
+
+            <!-- Queued song list -->
+            <div id="queued-songs">
+                <!-- Queued songs will be dynamically added here -->
+            </div>
+        </div>
+            </div>
+    <div id="overlay"></div>
     <script src="{{ url_for('static', filename='main.js') }}"></script>
 </body>
 </html>

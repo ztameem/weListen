@@ -1,9 +1,8 @@
 document.addEventListener('DOMContentLoaded', function() {
-
     var user = {};
 
     function fetchData() {
-        fetch('/api/top_tracks')
+        fetch('/api/fetch_data')
             .then(response => response.json())
             .then(data => {
                 updateHTML(data);
@@ -13,11 +12,13 @@ document.addEventListener('DOMContentLoaded', function() {
             });
     }
 
-    function updateHTML(topTracks) {
+    function updateHTML(data) {
         const trendingCardsContainer = document.getElementById('trending-cards-container');
 
         trendingCardsContainer.innerHTML = '';
-
+        const topTracks = data.top_tracks;
+        const localSongs = data.local_songs;
+    
         topTracks.forEach(item => {
             const card = document.createElement('div');
             card.classList.add('trending-card');
@@ -49,12 +50,12 @@ document.addEventListener('DOMContentLoaded', function() {
 
             card.appendChild(cardText);
             trendingCardsContainer.appendChild(card);
+            displaySongs(localSongs);
         });
     }
 
     fetchData();
 
-    const homeButton = document.getElementById('home-button');
     const emoji = document.querySelector('.emoji');
     const text = document.querySelector('.text');
 
@@ -69,7 +70,6 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     var messageInput = document.getElementById('message-input');
-    var chatMessages = document.getElementById('chat-messages');
 
     function getRoomIdFromUrl() {
         var pathArray = window.location.pathname.split('/');
@@ -82,7 +82,6 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
     
-    // Usage example
     var roomId = getRoomIdFromUrl();
     console.log('Room ID:', roomId);
 
@@ -97,11 +96,23 @@ document.addEventListener('DOMContentLoaded', function() {
 
     socket.on('connect', function () {
         socket.emit('request_user_number');
+        socket.emit('request_queued_songs');
     });
+
+    socket.on('update_queue', function (data) {
+        const queuedSongs = data.queuedSongs;
+        updateQueueList(queuedSongs);
+    });    
+
+    window.onbeforeunload = function() {
+        socket.emit('user_left', { userNumber: userNumber });
+    };
 
     socket.on('assign_user_number', function (data) {
         userNumber = data.userNumber;
     });
+
+    var activeUsersCounter = document.getElementById('active-users-counter');
 
     socket.on('user_joined', function (data) {
         var notification = document.createElement('li');
@@ -109,10 +120,24 @@ document.addEventListener('DOMContentLoaded', function() {
         notification.textContent = `${username} has joined the jam!`;
         notification.classList.add('user-joined-notification');
         document.getElementById('chat-messages').appendChild(notification);
+        updateActiveUsersCounter(data.userNumber);
+    });
+
+    socket.on('user_left', function (data) {
+        var notification = document.createElement('li');
+        var username = data.username ? data.username : `Guest${data.userNumber}`;
+        notification.textContent = `${username} left the jam!`;
+        notification.classList.add('user-left-notification');
+        document.getElementById('chat-messages').appendChild(notification);
+        updateActiveUsersCounter(data.userCount)
     });
     
+
+    function updateActiveUsersCounter(userCount) {
+        activeUsersCounter.textContent = `${userCount} users online`;
+    }
+    
     function receiveMessage(data) {
-        var guestNumber = userNumber;
         var li = document.createElement('li');
         
         var guestSpan = document.createElement('span');
@@ -127,15 +152,6 @@ document.addEventListener('DOMContentLoaded', function() {
         li.classList.add('chat-message');
     
         document.getElementById('chat-messages').appendChild(li);
-    }
-
-    function generateUniqueNumber() {
-        var number;
-        do {
-            number = Math.floor(Math.random() * 900) + 100;
-        } while (usedNumbers.includes(number)); 
-
-        return number;
     }
 
     socket.on('message', function (data) {
@@ -154,6 +170,90 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         }
     });
+
+    const queueButton = document.getElementById('queue-button');
+    const closeQueueButton = document.getElementById('close-popup');
+    const searchInput = document.getElementById('search-input'); 
+
+
+    queueButton.addEventListener('click', openQueuePopup);
+    closeQueueButton.addEventListener('click', closeQueuePopup)
+    searchInput.addEventListener('input', searchSongs);
+
+
+    document.addEventListener('keydown', function (event) {
+        if (event.key === 'Escape') {
+            closeQueuePopup();
+        }
+    });
+
+    function openQueuePopup() {
+        const queuePopup = document.getElementById('queue-popup');
+        const overlay = document.getElementById('overlay');
+        queuePopup.style.display = 'block';
+        overlay.style.display = 'block';
+    }
+    
+    function closeQueuePopup() {
+        const queuePopup = document.getElementById('queue-popup');
+        const overlay = document.getElementById('overlay');
+        queuePopup.style.display = 'none';
+        overlay.style.display = 'none';
+    }
+
+    async function searchSongs() {
+        const query = document.getElementById('search-input').value;
+        const response = await fetch(`/api/search_songs?query=${query}`);
+        const songs = await response.json();
+        updateSearchResults(songs);
+    }
+
+    function updateSearchResults(songs) {
+        const localSongsContainer = document.getElementById('local-songs-container');
+        localSongsContainer.innerHTML = '';
+
+        songs.forEach(song => {
+            const songElement = document.createElement('div');
+            songElement.innerHTML = `<p>${song.name} - ${song.artist}</p>`;
+            localSongsContainer.appendChild(songElement);
+        });
+    }
+
+    function queueSong(songName, artist) {
+        // Check if the queue is empty
+        if (queuedSongs.length === 0) {
+            // If the queue is empty, play the selected song
+            socket.emit('queue_song', { songName, artist });
+        } else {
+            // If the queue is not empty, add the song to the queue list
+            socket.emit('queue_song', { songName, artist });
+        }
+    }
+    
+    // Function to update the queue list on the right side
+    function updateQueueList(queuedSongs) {
+        const queueList = document.getElementById('queued-songs');
+        queueList.innerHTML = ''; // Clear existing list
+    
+        // Iterate through queued songs and add them to the list
+        queuedSongs.forEach((song, index) => {
+            const listItem = document.createElement('div');
+            listItem.textContent = `${index + 1}. ${song.songName} - ${song.artist}`;
+            queueList.appendChild(listItem);
+        });
+    }
+    
+    // Add an event listener to the "Queue" button
+    document.getElementById('queue-button').addEventListener('click', function () {
+        const songName = document.getElementById('search-input').value;
+        const artist = ''; // You can get artist from user input or other sources
+    
+        if (songName.trim() !== '') {
+            queueSong(songName, artist);
+        }
+    });
+    
+
 });
 
 function showCreateRoomPopup() {
@@ -214,3 +314,6 @@ document.addEventListener('mousemove', function (event) {
 sidebar.addEventListener('mouseleave', function () {
     sidebar.classList.remove('active');
 });
+
+
+

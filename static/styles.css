@@ -340,23 +340,15 @@ body {
 
 #room-content {
     display: flex;
+    flex-direction: column; 
+    align-items: center;
     justify-content: space-around;
-    padding-left: 250px; 
+    padding-left: 0; 
+    transition: margin-right 0.6s ease; 
 }
 
-#chat-box {
-    position: fixed;
-    bottom: 0;
-    right: 0;
-    width: 250px;
-    background-color: #303030;
-    color: white;
-    overflow-y: auto;
-    padding: 10px;
-    min-height: 100vh; 
-    display: flex;
-    flex-direction: column-reverse;
-
+#room-content h1 {
+    text-align: center;
 }
 
 #message-input {
@@ -402,3 +394,123 @@ body {
     font-weight: bold;
 }
 
+.user-left-notification {
+    color: red;
+    font-weight: bold;
+}
+
+
+#toggle-chat-container {
+    position: fixed;
+    top: 50%;
+    right: 275px;
+    cursor: pointer;
+    color: white;
+    padding: 10px;
+    transition: right 0.6s ease; 
+}
+
+.arrow-icon {
+    font-size: 20px;
+    transition: transform 0.3s ease, margin-left 0.3s ease; /* Add margin-left transition */
+}
+
+#chat-box {
+    position: fixed;
+    bottom: 0;
+    right: -275px;
+    width: 250px;
+    background-color: #303030;
+    color: white;
+    overflow-y: auto;
+    padding: 10px;
+    min-height: 100vh; 
+    display: flex;
+    transition: right 0.6s ease;
+    flex-direction: column-reverse;
+}
+
+#room-content {
+    display: flex;
+    justify-content: space-around;
+    padding-left: 0; 
+    transition: margin-right 0.6s ease; 
+}
+
+#toggle-chat-container.active {
+    right: 0; 
+}
+
+#toggle-chat-container.active .arrow-icon {
+    transform: rotate(180deg);
+}
+
+#active-users-counter {
+    position: fixed;
+    top: 13px;
+    right: 13px;
+    color: white;
+    transition: right 0.6s ease; 
+}
+
+#queue-popup {
+    display: none;
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background-color:#111;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+    z-index: 2;
+}
+
+#search-input {
+    color: black;
+}
+
+#local-songs-container p {
+    padding: 10px;
+    background-color: #333;
+    color: white;
+    margin-bottom: 5px;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+#local-songs-container p:hover {
+    background-color: #555;
+}
+
+#queue-list {
+    list-style-type: none;
+    padding: 0;
+    margin: 0;
+}
+
+#popup-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+#close-popup {
+    background: none;
+    border: none;
+    font-size: 1.5em;
+    cursor: pointer;
+    color: #666;
+}
+
+#overlay {
+    display: none;
+    position: fixed;
+    width: 100%;
+    height: 100%;
+    top: 0;
+    left: 0;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 1;
+}
